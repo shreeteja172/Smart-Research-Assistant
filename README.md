@@ -1,16 +1,31 @@
 # 🚀 Smart Research Assistant  
 
+## 📸 Screenshots
+
 <p align="center">
-  <img src="./public/screenshots/Landing1.png" alt="Landing Page" width="300"/>
-  <img src="./public/screenshots/dashboard.png" alt="Dashboard" width="300"/>
-  <img src="./public/screenshots/chat.png" alt="Chat" width="300"/>
+  <img src="./public/screenshots/Landing1.png" alt="Landing Page" width="800"/>
 </p>
 
 <p align="center">
-  <img src="./public/screenshots/feats.png" alt="Features" width="300"/>
-  <img src="./public/screenshots/notes.png" alt="Notes" width="300"/>
-  <img src="./public/screenshots/signup.png" alt="Signup" width="300"/>
+  <img src="./public/screenshots/dashboard.png" alt="Dashboard" width="800"/>
 </p>
+
+<p align="center">
+  <img src="./public/screenshots/chat.png" alt="Chat" width="800"/>
+</p>
+
+<p align="center">
+  <img src="./public/screenshots/feats.png" alt="Features" width="800"/>
+</p>
+
+<p align="center">
+  <img src="./public/screenshots/notes.png" alt="Notes" width="800"/>
+</p>
+
+<p align="center">
+  <img src="./public/screenshots/signup.png" alt="Signup" width="800"/>
+</p>
+
 
 
 <p align="center">
