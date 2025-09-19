@@ -4,7 +4,6 @@ import Image from "next/image";
 export default function SignUp() {
   return (
     <div className="flex min-h-svh w-full">
-      {/* Left side - Big Image */}
       <div className="hidden lg:flex lg:w-1/2 lg:flex-col lg:justify-center lg:bg-muted/50">
         <div className="flex flex-col  ">
           <div className="relative w-full h-screen ">
@@ -21,7 +20,6 @@ export default function SignUp() {
       </div>
 
       <div className="lg:hidden w-full h-screen bg-muted/50" />
-      {/* Right side - Sign Up Form */}
       <div className="flex w-full lg:w-1/2 items-center justify-center p-6 md:p-10">
         <div className="flex w-full max-w-sm flex-col gap-6">
           <SignUpForm />

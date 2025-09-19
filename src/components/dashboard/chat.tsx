@@ -15,6 +15,7 @@ import {
 import { AIMessage, AIMessageContent } from "@/components/ai/message";
 import { ThinkingMessage } from "@/components/ai/thinking";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { DefaultChatTransport } from "ai";
 import { ChatHeader } from "@/components/dashboard/chat-header";
 import { EmptyScreen } from "@/components/dashboard/empty-screen";
@@ -102,66 +103,72 @@ export default function Chat({
   };
 
   return (
-    <>
-      <ChatHeader messages={messages as DBMessage[]} status={status} id={id} />
+    <div className="mx-auto w-full max-w-5xl px-3 sm:px-4">
+      {/* <div className="sticky top-0 z-10 -mx-3 sm:-mx-4 px-3 sm:px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <ChatHeader messages={messages as DBMessage[]} status={status} id={id} />
+      </div> */}
 
-      <AIConversation>
-        <AIConversationContent>
-          {messages.length === 0 ? <EmptyScreen /> : null}
+      <Card className="border shadow-sm rounded-2xl overflow-hidden">
+        <CardContent className="p-0">
+          <AIConversation>
+            <AIConversationContent>
+              {messages.length === 0 ? <EmptyScreen /> : null}
 
-          {messages.map((message, index) => (
-            <AIMessage
-              from={message.role === "user" ? "user" : "assistant"}
-              key={index}
-            >
-              <AIMessageContent>
-                {message.parts.map((part, i) => {
-                  switch (part.type) {
-                    case "text":
-                      return (
-                        <div key={`${message.id}-${i}`}>
-                          <Streamdown key={index}>{part.text}</Streamdown>
-                        </div>
-                      );
-                    case "file":
-                      return (
-                        <div
-                          key={`image-${message.id}-${i}`}
-                          data-testid={`message-attachments`}
-                          className="flex flex-row justify-start gap-2"
-                        >
-                          <PreviewAttachment
-                            key={index}
-                            attachment={{
-                              name: part.filename ?? "file",
-                              contentType: part.mediaType,
-                              url: part.url,
-                            }}
-                            showTitle={false}
-                          />
-                        </div>
-                      );
-                  }
-                })}
-              </AIMessageContent>
+              {messages.map((message, index) => (
+                <AIMessage
+                  from={message.role === "user" ? "user" : "assistant"}
+                  key={index}
+                >
+                  <AIMessageContent>
+                    {message.parts.map((part, i) => {
+                      switch (part.type) {
+                        case "text":
+                          return (
+                            <div key={`${message.id}-${i}`} className="prose dark:prose-invert max-w-none">
+                              <Streamdown key={index}>{part.text}</Streamdown>
+                            </div>
+                          );
+                        case "file":
+                          return (
+                            <div
+                              key={`image-${message.id}-${i}`}
+                              data-testid={`message-attachments`}
+                              className="flex flex-row justify-start gap-2"
+                            >
+                              <PreviewAttachment
+                                key={index}
+                                attachment={{
+                                  name: part.filename ?? "file",
+                                  contentType: part.mediaType,
+                                  url: part.url,
+                                }}
+                                showTitle={false}
+                              />
+                            </div>
+                          );
+                      }
+                    })}
+                  </AIMessageContent>
 
-              {/* error UI moved to global banner below conversation */}
-            </AIMessage>
-          ))}
-          {status === "submitted" &&
-            messages.length > 0 &&
-            messages[messages.length - 1].role === "user" && (
-              <AIMessage from="assistant">
-                <AIMessageContent>
-                  <ThinkingMessage />
-                </AIMessageContent>
-              </AIMessage>
-            )}
-        </AIConversationContent>
-        <AIConversationScrollButton />
-      </AIConversation>
+                  {/* error UI moved to global banner below conversation */}
+                </AIMessage>
+              ))}
+              {status === "submitted" &&
+                messages.length > 0 &&
+                messages[messages.length - 1].role === "user" && (
+                  <AIMessage from="assistant">
+                    <AIMessageContent>
+                      <ThinkingMessage />
+                    </AIMessageContent>
+                  </AIMessage>
+                )}
+            </AIConversationContent>
+            <AIConversationScrollButton />
+          </AIConversation>
+        </CardContent>
+      </Card>
 
-      <div className="p-1">
+      <div className="sticky bottom-2 z-10 mt-2 rounded-2xl border bg-card/70 backdrop-blur px-2 py-1 shadow-sm">
         {error && (
           <div
             className="mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800/40 dark:bg-red-950/40 dark:text-red-300"
@@ -202,6 +209,6 @@ export default function Chat({
           </AIInputToolbar>
         </AIInput>
       </div>
-    </>
+    </div>
   );
 }

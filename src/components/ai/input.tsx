@@ -350,27 +350,7 @@ export const AIInputTextarea = ({
         {...props}
       />
 
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start">
-        <AttachmentsButton fileInputRef={fileInputRef} status={status} />
-        <Button
-          data-testid="mic-button"
-          className={cn(
-            "ml-1 rounded-md rounded-bl-lg p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200",
-            isListening && "bg-red-100 text-red-700 hover:bg-red-100",
-            isTranscribing && "opacity-50 cursor-not-allowed"
-          )}
-          onClick={(event) => {
-            event.preventDefault();
-            handleMicClick();
-          }}
-          aria-pressed={isListening}
-          aria-label={isListening ? "Stop recording" : "Start recording"}
-          disabled={status !== "ready" || isTranscribing}
-          variant="ghost"
-        >
-          {isListening ? <SquareIcon size={14} /> : <MicIcon size={14} />}
-        </Button>
-      </div>
+      <div className="hidden" />
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end">
         <AIInputSubmit
