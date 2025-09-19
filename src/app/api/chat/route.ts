@@ -1,113 +1,189 @@
-// import { auth } from "@/lib/auth";
-// import { NextResponse } from "next/server";
-// import { headers } from "next/headers";
-// import { index } from "@/lib/vector";
-// import { streamText, convertToCoreMessages } from "ai";
-// import { openai } from "@ai-sdk/openai";
+import { convertToUIMessages } from "@/lib/utils";
+import { convertToModelMessages, smoothStream, streamText } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { index } from "@/lib/vector";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
-// export const runtime = "edge";
+// Enhanced context extraction function
+async function extractRelevantContext(namespace: any, userQuery: string) {
+  try {
+    // Primary search with the exact query
+    const primaryResults = await namespace.query({
+      includeData: true,
+      includeMetadata: true,
+      topK: 5,
+      data: userQuery,
+    });
 
-// export async function POST(request: Request) {
-//   try {
-//     // Authenticate user
-//     const session = await auth.api.getSession({
-//       headers: await headers(),
-//     });
+    // Extract key terms for secondary search
+    const keywords = userQuery
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((word) => word.length > 3)
+      .slice(0, 3)
+      .join(" ");
 
-//     if (!session) {
-//       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-//     }
+    // Secondary search with keywords if different from original query
+    let secondaryResults = [];
+    if (keywords !== userQuery.toLowerCase() && keywords.length > 0) {
+      secondaryResults = await namespace.query({
+        includeData: true,
+        includeMetadata: true,
+        topK: 3,
+        data: keywords,
+      });
+    }
 
-//     const { messages } = await request.json();
+    // Combine and deduplicate results
+    const allResults = [...primaryResults, ...secondaryResults];
+    const uniqueResults = allResults.filter(
+      (result, index, array) =>
+        array.findIndex((r) => r.id === result.id) === index
+    );
 
-//     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-//       return NextResponse.json(
-//         { message: "Messages are required" },
-//         { status: 400 }
-//       );
-//     }
+    // Sort by relevance score
+    const sortedResults = uniqueResults.sort(
+      (a, b) => (b.score || 0) - (a.score || 0)
+    );
 
-//     // Get the latest user message
-//     const latestMessage = messages[messages.length - 1];
-//     const userQuery = latestMessage.content;
+    return sortedResults.slice(0, 6); // Return top 6 most relevant
+  } catch (error) {
+    console.error("Context extraction error:", error);
+    return [];
+  }
+}
 
-//     // Search for relevant context from user's namespace in Upstash
-//     const namespace = index.namespace(`${session.user.id}`);
+// Enhanced context formatting function
+function formatContextForResearch(contextResults: any[]) {
+  if (!contextResults || contextResults.length === 0) {
+    return "No relevant documents found in the knowledge base.";
+  }
 
-//     let contextualInfo = "";
+  return contextResults
+    .map((result, index) => {
+      const content = result.data || "";
+      const metadata = result.metadata || {};
+      const score = (result.score || 0) * 100;
 
-//     try {
-//       // Query the vector database for relevant documents
-//       const searchResults = await namespace.query({
-//         data: userQuery,
-//         topK: 5,
-//         includeMetadata: true,
-//       });
+      return `
+📄 Document ${index + 1} (Relevance: ${score.toFixed(1)}%)
+📂 Source: ${metadata.source || "Unknown Document"}
+📊 Type: ${metadata.documentType || "Unknown Type"}
+🔍 Content Preview:
+${content.substring(0, 500)}${content.length > 500 ? "..." : ""}
+${"─".repeat(50)}`;
+    })
+    .join("\n");
+}
 
-//       if (searchResults && searchResults.length > 0) {
-//         contextualInfo = searchResults
-//           .map((result, index) => {
-//             const content = result.data || "";
-//             const metadata = result.metadata || {};
-//             const score = result.score || 0;
+export async function POST(request: Request) {
+  let requestBody;
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
 
-//             return `
-// Document ${index + 1} (Relevance: ${(score * 100).toFixed(1)}%):
-// Source: ${metadata.source || "Unknown"}
-// Content: ${content}
-// ---`;
-//           })
-//           .join("\n");
-//       }
-//     } catch (vectorError) {
-//       console.error("Vector search error:", vectorError);
-//       // Continue without context if vector search fails
-//     }
+    if (!session?.user?.id) {
+      return new Response("Unauthorized", { status: 401 });
+    }
 
-//     // Prepare the system prompt with context
-//     const systemPrompt = `You are a helpful research assistant. You have access to the user's uploaded documents and can provide detailed answers based on their content.
+    const json = await request.json();
+    console.log("Received request body:", json);
+    requestBody = json;
 
-// ${
-//   contextualInfo
-//     ? `Here is relevant information from the user's documents:
+    // Extract user query from the request
+    const userQuery = requestBody.message?.parts?.[0]?.text || "";
 
-// ${contextualInfo}
+    if (!userQuery.trim()) {
+      return new Response("Empty query provided", { status: 400 });
+    }
 
-// Please use this information to provide a comprehensive and accurate response to the user's question. If the provided context doesn't fully answer the question, let the user know and provide the best answer you can based on the available information.`
-//     : "The user hasn't uploaded any relevant documents for this query. Please provide a helpful response based on your general knowledge, and suggest that they upload relevant documents for more specific assistance."
-// }
+    // Use the actual message from the request
+    const messagesFromDb = [
+      {
+        id: requestBody.message?.id || "1",
+        role: requestBody.message.role,
+        parts: requestBody.message.parts,
+        createdAt: new Date(),
+        chatId: requestBody.id || "1",
+        attachments: [],
+      },
+    ];
 
-// Guidelines:
-// - Always cite specific documents when referencing information
-// - Be clear about what information comes from their documents vs general knowledge
-// - Provide detailed, well-structured responses
-// - If you need more specific information, suggest what type of documents would be helpful`;
+    const uiMessages = [...convertToUIMessages(messagesFromDb)];
+    const modelMessages = convertToModelMessages(uiMessages).slice(-10);
 
-//     // Prepare messages for the AI model
-//     const coreMessages = convertToCoreMessages([
-//       { role: "system", content: systemPrompt },
-//       ...messages,
-//     ]);
+    // Enhanced context extraction
+    const namespace = await index.namespace(session?.user?.id as string);
+    const contextResults = await extractRelevantContext(namespace, userQuery);
+    const formattedContext = formatContextForResearch(contextResults);
 
-//     // Stream the response using Vercel AI SDK
-//     const result = await streamText({
-//       model: openai("gpt-4o-mini"),
-//       messages: coreMessages,
-//       temperature: 0.7,
-//       stream: true,
-//     });
+    console.log("Extracted context:", contextResults);
 
-//     return result.toDataStreamResponse();
-//   } catch (error) {
-//     console.error("Chat API error:", error);
+    // Enhanced research agent system prompt
+    const researchSystemPrompt = `You are an advanced AI Research Agent with access to the user's personal knowledge base. Your primary role is to conduct thorough research and provide comprehensive, well-sourced answers.
 
-//     return NextResponse.json(
-//       {
-//         message: "Internal server error",
-//         error:
-//           process.env.NODE_ENV === "development" ? error.message : undefined,
-//       },
-//       { status: 500 }
-//     );
-//   }
-// }
+🎯 **Research Capabilities:**
+- Deep analysis of uploaded documents and knowledge base
+- Cross-referencing information across multiple sources
+- Identifying patterns, connections, and insights
+- Providing evidence-based conclusions
+- Suggesting follow-up research areas
+
+📚 **Knowledge Base Context:**
+${formattedContext}
+
+🔬 **Research Guidelines:**
+1. **Comprehensive Analysis**: Always analyze ALL available context thoroughly
+2. **Source Attribution**: Clearly cite which documents/sources inform your response
+3. **Evidence-Based**: Support all claims with specific evidence from the knowledge base
+4. **Gap Identification**: Identify what information might be missing and suggest additional research
+5. **Multiple Perspectives**: Consider different angles and interpretations of the data
+6. **Actionable Insights**: Provide practical recommendations based on your research
+
+📝 **Response Format:**
+- Start with a brief executive summary
+- Provide detailed analysis with source citations
+- Include relevant quotes or data points
+- End with key insights and recommended next steps
+- If information is insufficient, clearly state what additional data would be helpful
+
+🧠 **Research Approach:**
+- Be thorough, analytical, and objective
+- Look for patterns and connections across documents
+- Consider context and implications
+- Provide both direct answers and broader insights
+- Suggest related research questions or areas to explore
+
+Remember: You are not just answering questions - you are conducting research to provide the most comprehensive and valuable insights possible.`;
+
+    const result = streamText({
+      model: openai("gpt-4o"),
+      messages: modelMessages,
+      system: researchSystemPrompt,
+      temperature: 0.3, // Lower temperature for more focused research responses
+      experimental_transform: smoothStream({
+        chunking: "word",
+        delayInMs: 15,
+      }),
+    });
+
+    return result.toUIMessageStreamResponse();
+  } catch (error) {
+    console.error("Chat API Error:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return new Response(
+      JSON.stringify({
+        error: "Internal Server Error",
+        details:
+          process.env.NODE_ENV === "development" ? errorMessage : undefined,
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+}

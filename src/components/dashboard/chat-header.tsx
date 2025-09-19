@@ -58,7 +58,7 @@ function PureChatHeader({
     <header className="shrink-0 flex justify-between items-center gap-2 border-b bg-white py-3 px-2.5">
       <div className="flex items-center gap-1">
         <Landmark />
-        Genie
+        Research Agent
       </div>
       <ResetChatButton
         disabled={!messages.length || status === "submitted"}
