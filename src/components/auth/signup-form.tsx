@@ -64,6 +64,14 @@ export default function SignUpForm() {
           </a>
         </div>
       </CardFooter>
+      {isGoogleLoading && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-background/70 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 rounded-xl border bg-card px-6 py-5 shadow-sm">
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <div className="text-sm text-muted-foreground">Preparing your account…</div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
