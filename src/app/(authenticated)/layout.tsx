@@ -13,11 +13,11 @@ export default async function Layout({
     <SidebarProvider>
       <AppSidebar />
       <main className="w-full">
-        <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 shadow-sm">
+        <header className="flex h-16 shrink-0 items-center gap-3 sm:gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 sm:px-6 shadow-sm">
           <div className="flex flex-1 items-center gap-4">
             <CustomTrigger />
 
-            <div className="sm:ml-auto  ml-auto -mx-2">
+            <div className="sm:ml-auto  ml-auto -mx-1 sm:-mx-2">
               <ThemeToggle />
             </div>
           </div>

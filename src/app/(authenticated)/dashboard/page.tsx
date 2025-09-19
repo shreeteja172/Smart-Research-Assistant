@@ -46,16 +46,16 @@ export default async function Dashboard() {
             </div>
           </div>
 
-          <div className="flex gap-5">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-5">
             <Link href="/notes">
-              <Button className="px-7 py-3 rounded-xl text-base">
+              <Button className="px-7 py-3 rounded-xl text-base w-full sm:w-auto">
                 Go to Notes
               </Button>
             </Link>
             <Link href="/chat">
               <Button
                 variant="outline"
-                className="px-7 py-3 rounded-xl text-base border-gray-300 dark:border-gray-600 dark:text-white"
+                className="px-7 py-3 rounded-xl text-base border-gray-300 dark:border-gray-600 dark:text-white w-full sm:w-auto"
               >
                 Go to Chat
               </Button>

@@ -1,4 +1,4 @@
-import SignInForm from "@/components/auth/signup-form";
+import SignInForm from "@/components/auth/signin-form";
 
 import Image from "next/image";
 
@@ -20,8 +20,7 @@ export default function SignUp() {
         </div>
       </div>
 
-      <div className="lg:hidden w-full h-screen bg-muted/50" />
-      <div className="flex w-full lg:w-1/2 items-center justify-center p-6 md:p-10">
+      <div className="flex w-full lg:w-1/2 items-center justify-center p-4 sm:p-6 md:p-10">
         <div className="flex w-full max-w-sm flex-col gap-6">
           <SignInForm />
         </div>
