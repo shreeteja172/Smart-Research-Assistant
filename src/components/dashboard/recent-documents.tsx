@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Calendar, Trash2, Eye, Download } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useDocuments } from "@/hooks/use-documents";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Document {
   id: string;
@@ -14,10 +16,6 @@ interface Document {
   status: string;
   createdAt: Date;
   updatedAt: Date;
-}
-
-interface RecentDocumentsProps {
-  documents: Document[];
 }
 
 const getFileIcon = (type: string) => {
@@ -44,12 +42,10 @@ const getStatusColor = (status: string) => {
 
 const DocumentCard = ({ document }: { document: Document }) => {
   const handleView = (id: string) => {
-    // TODO: Implement view functionality
     console.log("View document:", id);
   };
 
   const handleDownload = (id: string) => {
-    // TODO: Implement download functionality
     console.log("Download document:", id);
   };
 
@@ -85,7 +81,6 @@ const DocumentCard = ({ document }: { document: Document }) => {
             </div>
           </div>
 
-          {/* Action buttons - shown on hover */}
           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             {/* <Button
               variant="ghost"
@@ -121,7 +116,55 @@ const DocumentCard = ({ document }: { document: Document }) => {
   );
 };
 
-const RecentDocuments: React.FC<RecentDocumentsProps> = ({ documents }) => {
+const RecentDocuments: React.FC = () => {
+  const { data: documents, isLoading, error } = useDocuments();
+
+  if (isLoading) {
+    return (
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <FileText className="h-5 w-5" />
+            <span>Recent Documents</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-start space-x-3">
+                <Skeleton className="h-10 w-10 rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <FileText className="h-5 w-5" />
+            <span>Recent Documents</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-destructive">
+              Error loading documents. Please try again.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!documents || documents.length === 0) {
     return (
       <Card className="mt-8">
