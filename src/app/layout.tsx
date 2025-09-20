@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { CustomNextLoader } from "@/components/custom-next-loader";
 import QueryClientContextProvider from "@/lib/query-client-provider";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
           >
             <CustomNextLoader />
             {children}
+            <Analytics />
           </ThemeProvider>
         </QueryClientContextProvider>
       </body>
